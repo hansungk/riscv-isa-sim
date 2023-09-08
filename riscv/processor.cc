@@ -585,6 +585,12 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
       }
   }
 
+  // Vortex SIMT CSRs
+  // FIXME: hardcode 1-thread, 1-warp, 1-core config
+  csrmap[CSR_VORTEX_NT] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NT, 1);
+  csrmap[CSR_VORTEX_NW] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NW, 1);
+  csrmap[CSR_VORTEX_NC] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NC, 1);
+
   serialized = false;
 
   log_reg_write.clear();

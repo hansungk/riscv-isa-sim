@@ -3458,6 +3458,11 @@
 #define CSR_MHPMCOUNTER29H 0xb9d
 #define CSR_MHPMCOUNTER30H 0xb9e
 #define CSR_MHPMCOUNTER31H 0xb9f
+// Vortex CSRs
+// Machine SIMT CSRs
+#define CSR_VORTEX_NT          0xFC0
+#define CSR_VORTEX_NW          0xFC1
+#define CSR_VORTEX_NC          0xFC2
 
 #define CAUSE_MISALIGNED_FETCH 0x0
 #define CAUSE_FETCH_ACCESS 0x1
