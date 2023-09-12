@@ -2324,6 +2324,7 @@ void disassembler_t::add_instructions(const isa_parser_t* isa)
   // vortex
   // TODO: do proper extension_enable check
   DEFINE_RTYPE(vx_wspawn);
+  DEFINE_RTYPE(vx_tmc);
 }
 
 disassembler_t::disassembler_t(const isa_parser_t *isa)
