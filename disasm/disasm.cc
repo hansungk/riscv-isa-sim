@@ -2320,6 +2320,10 @@ void disassembler_t::add_instructions(const isa_parser_t* isa)
     DEFINE_VECTOR_VIU(vsm3c_vi);
     DEFINE_VECTOR_VV(vsm3me_vv);
   }
+
+  // vortex
+  // TODO: do proper extension_enable check
+  DEFINE_RTYPE(vx_wspawn);
 }
 
 disassembler_t::disassembler_t(const isa_parser_t *isa)
