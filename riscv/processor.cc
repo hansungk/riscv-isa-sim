@@ -32,7 +32,8 @@
 processor_t::processor_t(const isa_parser_t *isa, const cfg_t *cfg,
                          simif_t* sim, uint32_t id, bool halt_on_reset,
                          FILE* log_file, std::ostream& sout_)
-  : debug(false), halt_request(HR_NONE), isa(isa), cfg(cfg), sim(sim), id(id), xlen(0),
+  : debug(false), halt_request(HR_NONE), isa(isa), cfg(cfg), sim(sim),
+  lane_id(0), id(id), xlen(0),
   histogram_enabled(false), log_commits_enabled(false),
   log_file(log_file), sout_(sout_.rdbuf()), halt_on_reset(halt_on_reset),
   in_wfi(false), check_triggers_icount(false),
@@ -194,7 +195,9 @@ static int xlen_to_uxl(int xlen)
 void state_t::reset(processor_t* const proc, reg_t max_isa)
 {
   pc = DEFAULT_RSTVEC;
-  XPR.reset();
+  for (int i = 0; i < NUM_THREADS; i++) {
+    XPR[i].reset();
+  }
   FPR.reset();
 
   // This assumes xlen is always max_xlen, which is true today (see

@@ -480,7 +480,7 @@ reg_t sim_t::get_reg(const std::vector<std::string>& args)
   if (r >= NXPR)
     throw trap_interactive();
 
-  return p->get_state()->XPR[r];
+  return p->get_state()->XPR[p->get_lane_id()][r];
 }
 
 freg_t sim_t::get_freg(const std::vector<std::string>& args, int size)
@@ -500,7 +500,7 @@ freg_t sim_t::get_freg(const std::vector<std::string>& args, int size)
         throw trap_interactive();
       return freg(f64(r== 0 ? reg_t(0) : (READ_REG(r + 1) << 32) + zext32(READ_REG(r))));
     } else { //xlen >= size
-      return {p->get_state()->XPR[r] | ~(((uint64_t)-1) >> (64 - size)) ,(uint64_t)-1};
+      return {p->get_state()->XPR[p->get_lane_id()][r] | ~(((uint64_t)-1) >> (64 - size)) ,(uint64_t)-1};
     }
   } else {
     int r = std::find(fpr_name, fpr_name + NFPR, args[1]) - fpr_name;
@@ -581,7 +581,7 @@ void sim_t::interactive_reg(const std::string& cmd, const std::vector<std::strin
     for (int r = 0; r < NXPR; ++r) {
       out << std::setfill(' ') << std::setw(4) << xpr_name[r]
           << ": 0x" << std::setfill('0') << std::setw(max_xlen/4)
-          << zext(p->get_state()->XPR[r], max_xlen);
+          << zext(p->get_state()->XPR[p->get_lane_id()][r], max_xlen);
       if ((r + 1) % 4 == 0)
         out << std::endl;
     }

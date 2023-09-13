@@ -71,13 +71,16 @@ typedef std::unordered_map<reg_t, freg_t> commit_log_reg_t;
 // addr, value, size
 typedef std::vector<std::tuple<reg_t, uint64_t, uint8_t>> commit_log_mem_t;
 
+// FIXME
+#define NUM_THREADS 4
+
 // architectural state of a RISC-V hart
 struct state_t
 {
   void reset(processor_t* const proc, reg_t max_isa);
 
   reg_t pc;
-  regfile_t<reg_t, NXPR, true> XPR;
+  regfile_t<reg_t, NXPR, true> XPR[NUM_THREADS];
   regfile_t<freg_t, NFPR, false> FPR;
 
   // control and status registers
@@ -212,6 +215,7 @@ public:
   reg_t get_csr(int which) { return get_csr(which, insn_t(0), false, true); }
   mmu_t* get_mmu() { return mmu; }
   state_t* get_state() { return &state; }
+  int get_lane_id() const { return lane_id; }
   unsigned get_xlen() const { return xlen; }
   unsigned get_const_xlen() const {
     // Any code that assumes a const xlen should use this method to
@@ -316,6 +320,7 @@ private:
   std::unordered_map<std::string, extension_t*> custom_extensions;
   disassembler_t* disassembler;
   state_t state;
+  int lane_id; // lane being simulated at the current simulation step
   uint32_t id;
   unsigned xlen;
   bool histogram_enabled;
