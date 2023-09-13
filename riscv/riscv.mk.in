@@ -1406,6 +1406,7 @@ riscv_insn_ext_zvk = \
 
 riscv_insn_ext_vortex = \
 	vx_wspawn \
+	vx_tmc \
 
 riscv_insn_list = \
 	$(if $(HAVE_INT128),$(riscv_insn_ext_v),) \
