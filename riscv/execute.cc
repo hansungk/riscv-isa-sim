@@ -225,6 +225,7 @@ void processor_t::step(size_t n)
   while (n > 0) {
     size_t instret = 0;
     reg_t pc = state.pc;
+    reg_t pc_0 = pc;
     mmu_t* _mmu = mmu;
     state.prv_changed = false;
     state.v_changed = false;
@@ -282,7 +283,15 @@ void processor_t::step(size_t n)
           insn_fetch_t fetch = mmu->load_insn(pc);
           if (debug && !state.serialized)
             disasm(fetch.insn);
-          pc = execute_insn_logged(this, pc, fetch);
+          // @SIMT: repeat insn execution for every lane
+          for (int i = 0; i < NUM_THREADS; i++) {
+            curr_lane = i;
+            auto npc = execute_insn_logged(this, pc, fetch);
+            // lockstep execution: only update pc according to the first lane
+            if (i == 0) pc_0 = npc;
+            curr_lane = 0;
+          }
+          pc = pc_0;
           advance_pc();
         }
       }
@@ -291,7 +300,15 @@ void processor_t::step(size_t n)
         // Main simulation loop, fast path.
         for (auto ic_entry = _mmu->access_icache(pc); ; ) {
           auto fetch = ic_entry->data;
-          pc = execute_insn_fast(this, pc, fetch);
+          // @SIMT: repeat insn execution for every lane
+          for (int i = 0; i < NUM_THREADS; i++) {
+            curr_lane = i;
+            auto npc = execute_insn_fast(this, pc, fetch);
+            // lockstep execution: only update pc according to the first lane
+            if (i == 0) pc_0 = npc;
+            curr_lane = 0;
+          }
+          pc = pc_0;
           ic_entry = ic_entry->next;
           if (unlikely(ic_entry->tag != pc))
             break;
