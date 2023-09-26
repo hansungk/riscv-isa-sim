@@ -71,13 +71,18 @@ typedef std::unordered_map<reg_t, freg_t> commit_log_reg_t;
 // addr, value, size
 typedef std::vector<std::tuple<reg_t, uint64_t, uint8_t>> commit_log_mem_t;
 
-// FIXME move to somewhere else ha
+// FIXME move to somewhere else
 #define NUM_THREADS 4
 
 // architectural state of a RISC-V hart
+// @SIMT: a state_t represents a single warp, i.e. a SIMD unit with multiple
+// lanes executing in lockstep.
 struct state_t
 {
   void reset(processor_t* const proc, reg_t max_isa);
+
+  // @SIMT: is this warp active in the current simulation step?
+  bool warp_active;
 
   reg_t pc;
   regfile_t<reg_t, NXPR, true> XPR[NUM_THREADS];

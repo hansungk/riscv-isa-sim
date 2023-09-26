@@ -259,11 +259,15 @@ void sim_t::step(size_t n)
 {
   for (size_t i = 0, steps = 0; i < n; i += steps)
   {
-    steps = std::min(n - i, INTERLEAVE - current_step);
-    procs[current_proc]->step(steps);
+    // @SIMT: only step through active warps
+    auto warp_active = procs[current_proc]->get_state()->warp_active;
+    if (warp_active) {
+      steps = std::min(n - i, INTERLEAVE - current_step);
+      procs[current_proc]->step(steps);
 
-    current_step += steps;
-    if (current_step == INTERLEAVE)
+      current_step += steps;
+    }
+    if (!warp_active || current_step == INTERLEAVE)
     {
       current_step = 0;
       procs[current_proc]->get_mmu()->yield_load_reservation();

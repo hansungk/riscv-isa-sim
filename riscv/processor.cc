@@ -204,6 +204,8 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   // mstatus_csr_t::unlogged_write()):
   auto xlen = proc->get_isa().get_max_xlen();
 
+  // @SIMT: only activate warp 0
+  warp_active = (proc->get_id() == 0);
   prv = prev_prv = PRV_M;
   v = prev_v = false;
   prv_changed = false;
