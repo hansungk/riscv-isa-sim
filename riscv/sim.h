@@ -68,7 +68,12 @@ public:
   // Callback for processors to let the simulation know they were reset.
   virtual void proc_reset(unsigned id) override;
 
-  static const size_t INTERLEAVE = 5000;
+  // @SIMT: vx_wspawn as of now does no synchronization, and assumes the other
+  // warps have finished execution (tmask set to 0000) before they get
+  // overridden by the newly spawned warps with new PCs.  In order for this
+  // assumption to hold true, we need to do round-robin warp scheduling at every
+  // instruction.
+  static const size_t INTERLEAVE = 1;
   static const size_t INSNS_PER_RTC_TICK = 100; // 10 MHz clock for 1 BIPS core
   static const size_t CPU_HZ = 1000000000; // 1GHz CPU
 

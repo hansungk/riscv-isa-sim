@@ -264,11 +264,6 @@ void sim_t::step(size_t n)
   {
     // @SIMT: only step through active warps
     auto warp_active = (warp_mask[current_proc] == true);
-    printf("active warps: ");
-    for (auto w : warp_mask) {
-      printf("%d ", w ? 1 : 0);
-    }
-    printf("\n");
     if (warp_active) {
       steps = std::min(n - i, INTERLEAVE - current_step);
       procs[current_proc]->step(steps);
