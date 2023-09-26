@@ -50,6 +50,7 @@ sim_t::sim_t(const cfg_t *cfg, bool halted,
     cfg(cfg),
     mems(mems),
     procs(std::max(cfg->nprocs(), size_t(1))),
+    warp_mask(procs.size(), false),
     dtb_enabled(dtb_enabled),
     log_file(log_path),
     cmd_file(cmd_file),
@@ -103,6 +104,8 @@ sim_t::sim_t(const cfg_t *cfg, bool halted,
                                log_file.get(), sout_);
     harts[cfg->hartids()[i]] = procs[i];
   }
+  // @SIMT: only activate warp 0 at the beginning
+  warp_mask[0] = true;
 
   // When running without using a dtb, skip the fdt-based configuration steps
   if (!dtb_enabled) return;
@@ -260,7 +263,12 @@ void sim_t::step(size_t n)
   for (size_t i = 0, steps = 0; i < n; i += steps)
   {
     // @SIMT: only step through active warps
-    auto warp_active = procs[current_proc]->get_state()->warp_active;
+    auto warp_active = (warp_mask[current_proc] == true);
+    printf("active warps: ");
+    for (auto w : warp_mask) {
+      printf("%d ", w ? 1 : 0);
+    }
+    printf("\n");
     if (warp_active) {
       steps = std::min(n - i, INTERLEAVE - current_step);
       procs[current_proc]->step(steps);

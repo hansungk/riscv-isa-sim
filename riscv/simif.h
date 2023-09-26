@@ -27,6 +27,9 @@ public:
   virtual const cfg_t &get_cfg() const = 0;
   virtual const std::map<size_t, processor_t*>& get_harts() const = 0;
 
+  virtual const std::vector<bool> get_warp_mask() const = 0;
+  virtual void spawn_warp(size_t warp_id, bool value, reg_t pc) = 0;
+
   virtual const char* get_symbol(uint64_t paddr) = 0;
 
   virtual ~simif_t() = default;

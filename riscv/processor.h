@@ -72,6 +72,7 @@ typedef std::unordered_map<reg_t, freg_t> commit_log_reg_t;
 typedef std::vector<std::tuple<reg_t, uint64_t, uint8_t>> commit_log_mem_t;
 
 // FIXME move to somewhere else
+#define NUM_WARPS 4
 #define NUM_THREADS 4
 
 // architectural state of a RISC-V hart
@@ -80,9 +81,6 @@ typedef std::vector<std::tuple<reg_t, uint64_t, uint8_t>> commit_log_mem_t;
 struct state_t
 {
   void reset(processor_t* const proc, reg_t max_isa);
-
-  // @SIMT: is this warp active in the current simulation step?
-  bool warp_active;
 
   reg_t pc;
   regfile_t<reg_t, NXPR, true> XPR[NUM_THREADS];
@@ -221,6 +219,10 @@ public:
   mmu_t* get_mmu() { return mmu; }
   state_t* get_state() { return &state; }
   int get_lane_id() const { return curr_lane; }
+  std::vector<bool> get_warp_mask() const;
+  // @SIMT: spawn or despawn depending on `value`, a new warp at `warp_id`, with
+  // its PC set to `pc`.
+  void spawn_warp(size_t warp_id, bool value, reg_t pc);
   unsigned get_xlen() const { return xlen; }
   unsigned get_const_xlen() const {
     // Any code that assumes a const xlen should use this method to
@@ -325,7 +327,7 @@ private:
   std::unordered_map<std::string, extension_t*> custom_extensions;
   disassembler_t* disassembler;
   state_t state;
-  int curr_lane; // SIMT lane being simulated at the current simulation step
+  int curr_lane; // @SIMT: lane being simulated at the current simulation step
   uint32_t id;
   unsigned xlen;
   bool histogram_enabled;

@@ -57,6 +57,13 @@ public:
   virtual const cfg_t &get_cfg() const override { return *cfg; }
 
   virtual const std::map<size_t, processor_t*>& get_harts() const override { return harts; }
+  virtual const std::vector<bool> get_warp_mask() const override { return warp_mask; }
+  virtual void spawn_warp(size_t warp_id, bool value, reg_t pc) override {
+    assert(warp_id < warp_mask.size());
+    assert(warp_id < procs.size());
+    warp_mask[warp_id] = value;
+    procs[warp_id]->get_state()->pc = pc;
+  }
 
   // Callback for processors to let the simulation know they were reset.
   virtual void proc_reset(unsigned id) override;
@@ -70,6 +77,9 @@ private:
   const cfg_t * const cfg;
   std::vector<std::pair<reg_t, abstract_mem_t*>> mems;
   std::vector<processor_t*> procs;
+  // @SIMT: bitmask indicating active warps.
+  // Stored in sim_t because a processor corresponds to a single warp.
+  std::vector<bool> warp_mask;
   std::map<size_t, processor_t*> harts;
   std::pair<reg_t, reg_t> initrd_range;
   std::string dts;

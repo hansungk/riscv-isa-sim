@@ -204,8 +204,6 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   // mstatus_csr_t::unlogged_write()):
   auto xlen = proc->get_isa().get_max_xlen();
 
-  // @SIMT: only activate warp 0
-  warp_active = (proc->get_id() == 0);
   prv = prev_prv = PRV_M;
   v = prev_v = false;
   prv_changed = false;
@@ -591,9 +589,9 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   }
 
   // Vortex SIMT CSRs
-  // FIXME: hardcode 1-thread, 1-warp, 1-core config
-  csrmap[CSR_VORTEX_NT] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NT, 1);
-  csrmap[CSR_VORTEX_NW] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NW, 1);
+  // FIXME: hardcode 4-thread, 4-warp, 1-core config
+  csrmap[CSR_VORTEX_NT] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NT, 4);
+  csrmap[CSR_VORTEX_NW] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NW, 4);
   csrmap[CSR_VORTEX_NC] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NC, 1);
 
   serialized = false;
@@ -1039,6 +1037,14 @@ reg_t processor_t::get_csr(int which, insn_t insn, bool write, bool peek)
   // If we get here, the CSR doesn't exist.  Unimplemented CSRs always throw
   // illegal-instruction exceptions, not virtual-instruction exceptions.
   throw trap_illegal_instruction(insn.bits());
+}
+
+std::vector<bool> processor_t::get_warp_mask() const {
+  return sim->get_warp_mask();
+}
+
+void processor_t::spawn_warp(size_t warp_id, bool value, reg_t pc) {
+  return sim->spawn_warp(warp_id, value, pc);
 }
 
 reg_t illegal_instruction(processor_t UNUSED *p, insn_t insn, reg_t UNUSED pc)
