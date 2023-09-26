@@ -14,6 +14,7 @@
 #define MMU (*p->get_mmu())
 #define STATE (*p->get_state())
 #define FLEN (p->get_flen())
+#define LANE (p->get_lane_id())
 #define CHECK_REG(reg) ((void) 0)
 #define READ_REG(reg) (CHECK_REG(reg), STATE.XPR[p->get_lane_id()][reg])
 #define READ_FREG(reg) STATE.FPR[reg]
