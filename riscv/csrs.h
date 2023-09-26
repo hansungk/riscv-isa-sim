@@ -740,6 +740,15 @@ class vector_csr_t: public basic_csr_t {
   reg_t mask;
 };
 
+// @SIMT:
+class simt_csr_t: public basic_csr_t {
+ public:
+  simt_csr_t(processor_t* const proc, const reg_t addr, const reg_t init);
+  virtual reg_t read() const noexcept override;
+ protected:
+  virtual bool unlogged_write(const reg_t val) noexcept override;
+};
+
 typedef std::shared_ptr<vector_csr_t> vector_csr_t_p;
 
 // For CSRs shared between Vector and P extensions (vxsat)

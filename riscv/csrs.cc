@@ -1419,6 +1419,19 @@ bool vector_csr_t::unlogged_write(const reg_t val) noexcept {
   return basic_csr_t::unlogged_write(val & mask);
 }
 
+simt_csr_t::simt_csr_t(processor_t* const proc, const reg_t addr, const reg_t init) :
+  basic_csr_t(proc, addr, init) {
+}
+
+reg_t simt_csr_t::read() const noexcept {
+  return basic_csr_t::read() + proc->get_lane_id();
+}
+
+bool simt_csr_t::unlogged_write(const reg_t val) noexcept {
+  assert(false && "write to SIMT CSRs not allowed");
+  return basic_csr_t::unlogged_write(val);
+}
+
 vxsat_csr_t::vxsat_csr_t(processor_t* const proc, const reg_t addr):
   masked_csr_t(proc, addr, /*mask*/ 1, /*init*/ 0) {
 }

@@ -2,7 +2,7 @@
 // wspawn is only executed on lane 0
 if (LANE == 0) {
   printf("vx_wspawn: RS1=%lu\n", RS1);
-  int i = 0;
+  unsigned long i = 0;
   for (; i < RS1; i++) {
     p->spawn_warp(i, true, RS2);
   }

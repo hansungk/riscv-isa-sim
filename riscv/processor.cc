@@ -589,9 +589,21 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   }
 
   // Vortex SIMT CSRs
-  // FIXME: hardcode 4-thread, 4-warp, 1-core config
-  csrmap[CSR_VORTEX_NT] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NT, 4);
-  csrmap[CSR_VORTEX_NW] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NW, 4);
+  // NOTE: thread-id is only stored once per-warp, but its access will return
+  // differentiated value per-thread using simt_csr_t::read().
+  csrmap[CSR_VORTEX_WTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_WTID, 0);
+  const auto warp_id = proc->get_id();
+  const auto local_tid_base = warp_id * NUM_THREADS;
+  csrmap[CSR_VORTEX_LTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_LTID, local_tid_base);
+  // gtid == ltid because we're modeling N-warps-per-1-core.
+  csrmap[CSR_VORTEX_GTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_GTID, local_tid_base);
+  csrmap[CSR_VORTEX_LWID] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_LWID, warp_id);
+  // gcid == 0 because we're modeling N-warps-per-1-core.
+  csrmap[CSR_VORTEX_GCID] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_GCID, 0);
+  csrmap[CSR_VORTEX_TMASK] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_TMASK, 0);
+
+  csrmap[CSR_VORTEX_NT] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NT, NUM_THREADS);
+  csrmap[CSR_VORTEX_NW] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NW, NUM_WARPS);
   csrmap[CSR_VORTEX_NC] = std::make_shared<basic_csr_t>(proc, CSR_VORTEX_NC, 1);
 
   serialized = false;
