@@ -1428,7 +1428,7 @@ reg_t simt_csr_t::read() const noexcept {
 }
 
 bool simt_csr_t::unlogged_write(const reg_t val) noexcept {
-  assert(false && "write to SIMT CSRs not allowed");
+  assert(false && "unexpected write to SIMT CSRs");
   return basic_csr_t::unlogged_write(val);
 }
 

@@ -85,6 +85,7 @@ struct state_t
   reg_t pc;
   regfile_t<reg_t, NXPR, true> XPR[NUM_THREADS];
   regfile_t<freg_t, NFPR, false> FPR;
+  bool thread_mask[NUM_THREADS];
 
   // control and status registers
   std::unordered_map<reg_t, csr_t_p> csrmap;
@@ -218,7 +219,7 @@ public:
   reg_t get_csr(int which) { return get_csr(which, insn_t(0), false, true); }
   mmu_t* get_mmu() { return mmu; }
   state_t* get_state() { return &state; }
-  int get_lane_id() const { return curr_lane; }
+  unsigned get_lane_id() const { return curr_lane; }
   std::vector<bool> get_warp_mask() const;
   // @SIMT: spawn or despawn depending on `value`, a new warp at `warp_id`, with
   // its PC set to `pc`.
@@ -327,7 +328,7 @@ private:
   std::unordered_map<std::string, extension_t*> custom_extensions;
   disassembler_t* disassembler;
   state_t state;
-  int curr_lane; // @SIMT: lane being simulated at the current simulation step
+  unsigned curr_lane; // @SIMT: lane being simulated at the current simulation step
   uint32_t id;
   unsigned xlen;
   bool histogram_enabled;

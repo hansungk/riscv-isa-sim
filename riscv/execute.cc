@@ -222,6 +222,12 @@ void processor_t::step(size_t n)
     }
   }
 
+  fprintf(stderr, "warp: %u, thread_mask: ", id);
+  for (int i = 0; i < NUM_THREADS; i++) {
+    fprintf(stderr, "%d ", state.thread_mask[i] ? 1 : 0);
+  }
+  fprintf(stderr, "\n");
+
   while (n > 0) {
     size_t instret = 0;
     reg_t pc = state.pc;
@@ -285,7 +291,11 @@ void processor_t::step(size_t n)
             disasm(fetch.insn);
           // @SIMT: repeat insn execution for every lane
           for (int i = 0; i < NUM_THREADS; i++) {
+            if (!state.thread_mask[i]) {
+              continue;
+            }
             curr_lane = i;
+            fprintf(stderr, "executing curr_lane=%d\n", i);
             auto npc = execute_insn_logged(this, pc, fetch);
             // lockstep execution: only update pc according to the first lane
             if (i == 0) pc_0 = npc;
@@ -302,7 +312,11 @@ void processor_t::step(size_t n)
           auto fetch = ic_entry->data;
           // @SIMT: repeat insn execution for every lane
           for (int i = 0; i < NUM_THREADS; i++) {
+            if (!state.thread_mask[i]) {
+              continue;
+            }
             curr_lane = i;
+            fprintf(stderr, "executing curr_lane=%d\n", i);
             auto npc = execute_insn_fast(this, pc, fetch);
             // lockstep execution: only update pc according to the first lane
             if (i == 0) pc_0 = npc;

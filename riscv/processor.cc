@@ -197,8 +197,11 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   pc = DEFAULT_RSTVEC;
   for (int i = 0; i < NUM_THREADS; i++) {
     XPR[i].reset();
+    thread_mask[i] = false;
   }
   FPR.reset();
+  // @SIMT: reset to only 0-th thread being active
+  thread_mask[0] = true;
 
   // This assumes xlen is always max_xlen, which is true today (see
   // mstatus_csr_t::unlogged_write()):
@@ -594,6 +597,7 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   csrmap[CSR_VORTEX_WTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_WTID, 0);
   const auto warp_id = proc->get_id();
   const auto local_tid_base = warp_id * NUM_THREADS;
+  fprintf(stderr, "warp_id: %u, local_tid_base: %u\n", warp_id, local_tid_base);
   csrmap[CSR_VORTEX_LTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_LTID, local_tid_base);
   // gtid == ltid because we're modeling N-warps-per-1-core.
   csrmap[CSR_VORTEX_GTID] = std::make_shared<simt_csr_t>(proc, CSR_VORTEX_GTID, local_tid_base);
@@ -1044,6 +1048,7 @@ reg_t processor_t::get_csr(int which, insn_t insn, bool write, bool peek)
   if (search != state.csrmap.end()) {
     if (!peek)
       search->second->verify_permissions(insn, write);
+    fprintf(stderr, "%s: read=%lu\n", __func__, search->second->read());
     return search->second->read();
   }
   // If we get here, the CSR doesn't exist.  Unimplemented CSRs always throw

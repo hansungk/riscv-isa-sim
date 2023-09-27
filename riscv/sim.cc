@@ -338,6 +338,17 @@ bool sim_t::mmio_store(reg_t paddr, size_t len, const uint8_t* bytes)
   return bus.store(paddr, len, bytes);
 }
 
+void sim_t::spawn_warp(size_t warp_id, bool value, reg_t pc) {
+  assert(warp_id < warp_mask.size());
+  assert(warp_id < procs.size());
+  warp_mask[warp_id] = value;
+  procs[warp_id]->get_state()->pc = pc;
+  // reset thread mask to only lane 0
+  for (unsigned int i = 0; i < NUM_THREADS; i++) {
+    procs[warp_id]->get_state()->thread_mask[i] = (i == 0);
+  }
+}
+
 void sim_t::set_rom()
 {
   const int reset_vec_size = 8;

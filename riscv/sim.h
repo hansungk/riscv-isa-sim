@@ -58,12 +58,7 @@ public:
 
   virtual const std::map<size_t, processor_t*>& get_harts() const override { return harts; }
   virtual const std::vector<bool> get_warp_mask() const override { return warp_mask; }
-  virtual void spawn_warp(size_t warp_id, bool value, reg_t pc) override {
-    assert(warp_id < warp_mask.size());
-    assert(warp_id < procs.size());
-    warp_mask[warp_id] = value;
-    procs[warp_id]->get_state()->pc = pc;
-  }
+  virtual void spawn_warp(size_t warp_id, bool value, reg_t pc) override;
 
   // Callback for processors to let the simulation know they were reset.
   virtual void proc_reset(unsigned id) override;
