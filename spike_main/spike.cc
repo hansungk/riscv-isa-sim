@@ -63,6 +63,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  --disable-dtb         Don't write the device tree blob into memory\n");
   fprintf(stderr, "  --kernel=<path>       Load kernel flat image into memory\n");
   fprintf(stderr, "  --initrd=<path>       Load kernel initrd into memory\n");
+  fprintf(stderr, "  --argsbin=<path>      Load Vortex args.bin into memory\n");
   fprintf(stderr, "  --bootargs=<args>     Provide custom bootargs for kernel [default: %s]\n",
           DEFAULT_KERNEL_BOOTARGS);
   fprintf(stderr, "  --real-time-clint     Increment clint time at real-time rate\n");
@@ -330,6 +331,7 @@ int main(int argc, char** argv)
   bool dump_dts = false;
   bool dtb_enabled = true;
   const char* kernel = NULL;
+  const char* argsbin = NULL;
   reg_t kernel_offset, kernel_size;
   std::vector<const device_factory_t*> plugin_device_factories;
   std::unique_ptr<icache_sim_t> ic;
@@ -415,6 +417,7 @@ int main(int argc, char** argv)
   parser.option(0, "dtb", 1, [&](const char *s){dtb_file = s;});
   parser.option(0, "kernel", 1, [&](const char* s){kernel = s;});
   parser.option(0, "initrd", 1, [&](const char* s){initrd = s;});
+  parser.option(0, "argsbin", 1, [&](const char* s){argsbin = s;});
   parser.option(0, "bootargs", 1, [&](const char* s){cfg.bootargs = s;});
   parser.option(0, "real-time-clint", 0, [&](const char UNUSED *s){cfg.real_time_clint = true;});
   parser.option(0, "triggers", 1, [&](const char *s){cfg.trigger_count = atoul_safe(s);});
@@ -499,6 +502,22 @@ int main(int argc, char** argv)
          reg_t initrd_start = initrd_end - initrd_size;
          cfg.initrd_bounds = std::make_pair(initrd_start, initrd_end);
          read_file_bytes(initrd, 0, m.second, initrd_start - m.first, initrd_size);
+         break;
+      }
+    }
+  }
+
+  if (argsbin) {
+    if (!check_file_exists(argsbin)) {
+      fprintf(stderr, "Unable to open argsbin binary '%s'\n", argsbin);
+      exit(1);
+    }
+    size_t argsbin_size = get_file_size(argsbin);
+    fprintf(stderr, "argsbin_size=%ld\n", argsbin_size);
+    reg_t argsbin_offset = 0x7fff0000ul;
+    for (auto& m : mems) {
+      if (argsbin_size && (argsbin_offset + argsbin_size) < m.second->size()) {
+         read_file_bytes(argsbin, 0, m.second, argsbin_offset, argsbin_size);
          break;
       }
     }
