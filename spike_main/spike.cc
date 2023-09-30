@@ -513,13 +513,21 @@ int main(int argc, char** argv)
       exit(1);
     }
     size_t argsbin_size = get_file_size(argsbin);
-    fprintf(stderr, "argsbin_size=%ld\n", argsbin_size);
-    reg_t argsbin_offset = 0x7fff0000ul;
-    for (auto& m : mems) {
-      if (argsbin_size && (argsbin_offset + argsbin_size) < m.second->size()) {
-         read_file_bytes(argsbin, 0, m.second, argsbin_offset, argsbin_size);
+    reg_t argsbin_base = 0x7fff0000ul;
+    fprintf(stderr, "mems.size: %lu\n", mems.size());
+    bool success = false;
+    for (auto &m : mems) {
+      if (m.first == argsbin_base && argsbin_size &&
+          argsbin_size < m.second->size()) {
+         read_file_bytes(argsbin, 0, m.second, 0ul /*offset*/, argsbin_size);
+         success = true;
          break;
       }
+    }
+    if (!success) {
+      fprintf(stderr,
+              "error: Could not find mem with base 7fff0000 for argsbin\n");
+      exit(1);
     }
   }
 
