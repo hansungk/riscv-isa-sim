@@ -597,7 +597,10 @@ void sstatus_csr_t::dirty(const reg_t dirties) {
 
   // Catch problems like #823 where P-extension instructions were not
   // checking for mstatus.VS!=Off:
-  if (!enabled(dirties)) abort();
+  // NOTE(hansung): this should be unnecessary under machine mode?
+  if (state->prv < PRV_M) {
+    if (!enabled(dirties)) abort();
+  }
 
   orig_sstatus->write(orig_sstatus->read() | dirties);
   if (state->v) {
@@ -1326,7 +1329,11 @@ float_csr_t::float_csr_t(processor_t* const proc, const reg_t addr, const reg_t 
 
 void float_csr_t::verify_permissions(insn_t insn, bool write) const {
   masked_csr_t::verify_permissions(insn, write);
-  require_fs;
+  // NOTE(hansung): require_fs works in supervisor mode, so this should be
+  // unnecessary under machine mode?
+  if (state->prv < PRV_M) {
+    require_fs;
+  }
   if (!proc->extension_enabled('F') && !proc->extension_enabled(EXT_ZFINX))
     throw trap_illegal_instruction(insn.bits());
 
